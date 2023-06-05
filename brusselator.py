@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import ufl
-from dolfinx import fem, io, mesh
-from dolfinx.fem import Function, FunctionSpace, Expression
-from dolfinx.fem.petsc import NonlinearProblem
+
+import numpy as np
+
+from dolfinx import io, mesh
 from dolfinx.nls.petsc import NewtonSolver
+from dolfinx.fem.petsc import NonlinearProblem
+from dolfinx.fem import Function, FunctionSpace
+
 from mpi4py import MPI
 from petsc4py import PETSc
-from ufl import dot, dx, grad, inner
+from ufl import dot, dx, grad
 
 # Define temporal parameters
 t = 0  # Start time
-T = 20  # Final time
-num_steps = 200
+T = 25  # Final time
+num_steps = 3000
 dt = T / num_steps  # time step size
 
 A = 1
@@ -22,7 +25,12 @@ B = 3
 Dc = 1  # diffusion coefficient for c
 Dmu = 0.1  # diffusion coefficient for mu
 
-msh = mesh.create_unit_square(MPI.COMM_WORLD, 128, 128, mesh.CellType.triangle)
+msh = mesh.create_rectangle(
+    comm=MPI.COMM_WORLD,
+    points=[(0, 0), (64, 64)],
+    n=[64, 64],
+    cell_type=mesh.CellType.quadrilateral,
+)
 P1 = ufl.FiniteElement("Lagrange", msh.ufl_cell(), 1)
 ME = FunctionSpace(msh, P1 * P1)
 
@@ -39,8 +47,10 @@ c0, mu0 = ufl.split(u0)
 u.x.array[:] = 0.0
 
 # i.c.
-u.sub(0).interpolate(lambda x: A + x[0]*0.0)
-u.sub(1).interpolate(lambda x: B / A + 2*A*np.random.rand(x.shape[1]))
+u.sub(0).interpolate(lambda x: A + 0.0 * x[0])
+u.sub(1).interpolate(
+    lambda x: B / A + 0.1 * A * np.random.standard_normal(size=x.shape[1])
+)
 
 
 u.x.scatter_forward()
@@ -66,7 +76,7 @@ F = F0 + F1
 problem = NonlinearProblem(F, u)
 solver = NewtonSolver(MPI.COMM_WORLD, problem)
 solver.convergence_criterion = "incremental"
-solver.rtol = 1e-6
+solver.rtol = 1e-10
 
 ksp = solver.krylov_solver
 opts = PETSc.Options()
@@ -84,10 +94,16 @@ c = u.sub(0)
 mu = u.sub(1)
 u0.x.array[:] = u.x.array
 
+file.write_function(c, t)
+file.write_function(mu, t)
+
 while t < T:
     t += dt
     r = solver.solve(u)
     print(f"Step {int(t/dt)}: num iterations: {r[0]}")
+    if not r[1]:
+        print("Newton iteration failed to converge! Exiting")
+        break
     u0.x.array[:] = u.x.array
     file.write_function(c, t)
     file.write_function(mu, t)
