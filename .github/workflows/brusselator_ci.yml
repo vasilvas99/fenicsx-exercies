@@ -1,0 +1,22 @@
+name: brusselate
+on:
+  push:
+    branches: [ main ]
+jobs:
+  container-brusselator-job:
+    runs-on: ubuntu-latest
+    container:
+      image: dolfinx/dolfinx:stable
+    steps:
+      - name: Run simulation
+        run: mpirun -np $(nproc) python3 brusselator.py
+        
+      - name: Package Results
+        run: tar --create --gzip --file brusselator_output.tar.gz bruss_output.xdmf bruss_output.h5
+        
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with: 
+          name: brusselator_output.tar.gz
+          if-no-files-found: error
+          path: brusselator_output.tar.gz
