@@ -85,7 +85,7 @@ opts[f"{option_prefix}ksp_type"] = "preonly"
 opts[f"{option_prefix}pc_type"] = "lu"
 ksp.setFromOptions()
 
-file = io.XDMFFile(MPI.COMM_WORLD, "/mnt/c/Users/Vasil/Desktop/bruss_output.xdmf", "w")
+file = io.XDMFFile(MPI.COMM_WORLD, "bruss_output.xdmf", "w")
 
 file.write_mesh(msh)
 t = 0.0
