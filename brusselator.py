@@ -15,8 +15,8 @@ from ufl import dot, dx, grad
 
 # Define temporal parameters
 t = 0  # Start time
-T = 25  # Final time
-num_steps = 3000
+T = 55  # Final time
+num_steps = 6000
 dt = T / num_steps  # time step size
 
 A = 1
