@@ -1,9 +1,9 @@
-name: brusselate
+name: oregonate
 on:
   push:
     branches: [ main ]
 jobs:
-  container-brusselator-job:
+  container-oregantor-job:
     runs-on: ubuntu-latest
     container:
       image: dolfinx/dolfinx:stable
