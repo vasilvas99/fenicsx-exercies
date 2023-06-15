@@ -16,14 +16,14 @@ jobs:
         uses: actions/checkout@v3
     
       - name: Run simulation
-        run: mpirun -np ${{ steps.cpu-cores.outputs.count }} python3 brusselator.py
+        run: mpirun -np ${{ steps.cpu-cores.outputs.count }} python3 oregonator.py
         
       - name: Package Results
-        run: tar --create --gzip --file brusselator_output.tar.gz bruss_output.xdmf bruss_output.h5
+        run: tar --create --gzip --file oregonator_output.tar.gz oreg_output.xdmf oreg_output.h5
         
       - name: Upload Results
         uses: actions/upload-artifact@v3
         with: 
-          name: brusselator_output.tar.gz
+          name: oregonator_output.tar.gz
           if-no-files-found: error
-          path: brusselator_output.tar.gz
+          path: oregonator_output.tar.gz

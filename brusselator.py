@@ -27,8 +27,8 @@ Dmu = 0.1  # diffusion coefficient for mu
 
 msh = mesh.create_rectangle(
     comm=MPI.COMM_WORLD,
-    points=[(0, 0), (128, 128)],
-    n=[128, 128],
+    points=[(0, 0), (64, 64)],
+    n=[64, 64],
     cell_type=mesh.CellType.quadrilateral,
 )
 P1 = ufl.FiniteElement("Lagrange", msh.ufl_cell(), 1)
