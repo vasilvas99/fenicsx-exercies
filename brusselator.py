@@ -17,7 +17,7 @@ from ufl import dot, dx, grad
 t = 0  # Start time
 T = 55  # Final time
 num_steps = 6000
-dt = T / num_steps  # time step size
+dt = (T - t) / num_steps  # time step size
 
 A = 1
 B = 3
@@ -88,7 +88,6 @@ ksp.setFromOptions()
 file = io.XDMFFile(MPI.COMM_WORLD, "bruss_output.xdmf", "w")
 
 file.write_mesh(msh)
-t = 0.0
 
 c = u.sub(0)
 mu = u.sub(1)

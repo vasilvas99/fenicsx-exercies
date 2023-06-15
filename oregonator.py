@@ -18,10 +18,10 @@ from ufl import dot, dx, grad
 t = 0  # Start time
 T = 500  # Final time
 num_steps = 8000
-dt = T / num_steps  # time step size
+dt = (T - t) / num_steps  # time step size
 
 
-Dy = 3    # diffusion coefficient for y
+Dy = 3  # diffusion coefficient for y
 Dz = 100  # diffusion coefficient for z
 Dr = 0.1  # diffusion coefficient for r
 
@@ -51,23 +51,17 @@ y0, z0, r0 = ufl.split(u0)
 u.x.array[:] = 0.0
 
 # i.c.
-u.sub(0).interpolate(
-    lambda xi: 1  + 0.0*xi[0]
-)
-u.sub(1).interpolate(
-    lambda xi: 1 + 0.1 * np.random.standard_normal(size=xi.shape[1])
-)
-u.sub(2).interpolate(
-    lambda xi: 1 + 0.1 * np.random.standard_normal(size=xi.shape[1])
-)
+u.sub(0).interpolate(lambda xi: 1 + 0.0 * xi[0])
+u.sub(1).interpolate(lambda xi: 1 + 0.1 * np.random.standard_normal(size=xi.shape[1]))
+u.sub(2).interpolate(lambda xi: 1 + 0.1 * np.random.standard_normal(size=xi.shape[1]))
 u.x.scatter_forward()
 
-react_y = (1/eps) * ( y - y*y - f*z*((y-qpar)/(y+qpar)) - 0.5*(y-r))
+react_y = (1 / eps) * (y - y * y - f * z * ((y - qpar) / (y + qpar)) - 0.5 * (y - r))
 react_z = y - z
-react_r = (1/(2*eps)) * (y - r)
+react_r = (1 / (2 * eps)) * (y - r)
 
 F0 = (
-    y * v* dx
+    y * v * dx
     - y0 * v * dx
     + Dy * dt * dot(grad(y), grad(v)) * dx
     - dt * react_y * v * dx
@@ -101,7 +95,6 @@ ksp.setFromOptions()
 file = io.XDMFFile(MPI.COMM_WORLD, "oreg_output.xdmf", "w")
 
 file.write_mesh(msh)
-t = 0.0
 
 y = u.sub(0)
 z = u.sub(1)
