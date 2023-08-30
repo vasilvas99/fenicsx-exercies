@@ -62,7 +62,7 @@ opts[f"{option_prefix}ksp_type"] = "preonly"
 opts[f"{option_prefix}pc_type"] = "lu"
 ksp.setFromOptions()
 
-file = io.XDMFFile(MPI.COMM_WORLD, "bruss_output.xdmf", "w")
+file = io.XDMFFile(MPI.COMM_WORLD, "stoyanov-tonchev.xdmf", "w")
 
 file.write_mesh(msh)
 
