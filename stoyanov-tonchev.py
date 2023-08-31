@@ -15,17 +15,17 @@ from ufl import dot, dx, grad, div
 
 # Define temporal parameters
 t = 0  # Start time
-T = 55  # Final time
-num_steps = 6000
+T = 10  # Final time
+num_steps = 100
 dt = (T - t) / num_steps  # time step size
 
 msh = mesh.create_rectangle(
     comm=MPI.COMM_WORLD,
     points=[(0, 0), (64, 64)],
     n=[64, 64],
-    cell_type=mesh.CellType.quadrilateral,
+    cell_type=mesh.CellType.triangle,
 )
-P1 = ufl.FiniteElement("Lagrange", msh.ufl_cell(), 1)
+P1 = ufl.FiniteElement("CG", msh.ufl_cell(), 1)
 ME = FunctionSpace(msh, P1)
 
 
@@ -38,14 +38,17 @@ u0 = Function(ME)  # solution from previous converged step
 u.x.array[:] = 0.0
 
 # i.c.
-u.interpolate(lambda x: 1 + 0.0 * x[0])
+u.interpolate(lambda x: (np.abs(np.sin(10*x[0]))))
 
-mu = u + dot(grad(u), grad(u)) + u*div(grad(u))
+g = u*u/2
+lap_g = div(grad(g))
+lap_v = div(grad(v))
 
+rhs = - dot(lap_g, lap_v) - dot(grad(u), grad(v)) 
 F0 = (
     u * v * dx
     - u0 * v * dx
-    - dt * dot(grad(mu), grad(v)) * dx
+    - dt * rhs * dx
 )
 
 F = F0
@@ -54,6 +57,7 @@ problem = NonlinearProblem(F, u)
 solver = NewtonSolver(MPI.COMM_WORLD, problem)
 solver.convergence_criterion = "incremental"
 solver.rtol = 1e-10
+solver.max_it = 1000
 
 ksp = solver.krylov_solver
 opts = PETSc.Options()
